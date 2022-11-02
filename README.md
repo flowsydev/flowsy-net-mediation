@@ -16,7 +16,9 @@ To go even further, we can split those requests in two types:
 * Command: A request for creating, updating or removing data, thus altering the application's current state.
 
 ## Dependencies
-This package relies on [MediatR](https://www.nuget.org/packages/MediatR) to set the foundation for infrastructure-decoupled applications.
+This package relies on other packages to set the foundation for infrastructure-decoupled applications:
+* [MediatR](https://www.nuget.org/packages/MediatR)
+* [Serilog](https://www.nuget.org/packages/Serilog)
 
 ## Usage
 ### 1. Define Some Queries
