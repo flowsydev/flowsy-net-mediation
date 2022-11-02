@@ -135,8 +135,10 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddMediation(
     true, // Register InitializationBehavior to set the current user and culture for every request
+    true, // Register LoggingBehavior to log information for every request and its result
     typeof(CustomersByRegionQuery).Assembly, // Register queries and commands from this assembly
     typeof(CreateCustomerCommand).Assembly // Register queries and commands from this assembly
+    // Register queries and commands from others assemblies
     );
 
 // Add other services

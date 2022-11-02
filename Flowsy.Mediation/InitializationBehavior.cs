@@ -23,3 +23,12 @@ public class InitializationBehavior<TRequest, TResult> : IPipelineBehavior<TRequ
         return next();
     }
 }
+
+/// <summary>
+/// Initializes a request with the current user and UI culture.
+/// </summary>
+/// <typeparam name="TRequest">The type of request.</typeparam>
+public class InitializationBehavior<TRequest> : InitializationBehavior<TRequest, Unit>
+    where TRequest : Request
+{
+}
