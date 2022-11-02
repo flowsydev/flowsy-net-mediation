@@ -23,6 +23,8 @@ public class Request<TResult> : IRequest<TResult>
     /// <summary>
     /// The current culture.
     /// </summary>
+    [IgnoreDataMember]
+    [JsonIgnore]
     public CultureInfo Culture { get; internal set; } = CultureInfo.CurrentUICulture;
 }
 
