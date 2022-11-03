@@ -18,14 +18,14 @@ public class Request<TResult> : IRequest<TResult>
     /// </summary>
     [IgnoreDataMember]
     [JsonIgnore]
-    public ClaimsPrincipal? User { get; internal set; } = ClaimsPrincipal.Current;
+    public ClaimsPrincipal? User => ClaimsPrincipal.Current;
     
     /// <summary>
     /// The current culture.
     /// </summary>
     [IgnoreDataMember]
     [JsonIgnore]
-    public CultureInfo Culture { get; internal set; } = CultureInfo.CurrentUICulture;
+    public CultureInfo Culture => CultureInfo.CurrentUICulture;
 }
 
 /// <summary>
