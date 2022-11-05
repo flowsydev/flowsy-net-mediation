@@ -1,4 +1,5 @@
 using System.Reflection;
+using Flowsy.Localization;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -13,20 +14,15 @@ public static class DependencyInjection
     /// Registers assemblies containing requests and request handlers to trigger application processes. 
     /// </summary>
     /// <param name="services">The application service collection.</param>
-    /// <param name="logRequests">Whether or not to register the LoggingBehavior service.</param>
     /// <param name="assemblies">The assemblies to register requests and request handlers from.</param>
     /// <returns>The application service collection.</returns>
-    public static IServiceCollection AddMediation(
-        this IServiceCollection services,
-        bool logRequests,
-        params Assembly[] assemblies
-        )
+    public static MediationBuilder AddMediation(this IServiceCollection services, params Assembly[] assemblies)
     {
+        if (!services.Any())
+            throw new ArgumentException("NoAssemblyWasSpecified".Localize(), nameof(assemblies));
+        
         services.AddMediatR(assemblies);
         
-        if (logRequests)
-            services.AddTransient(typeof (IPipelineBehavior<,>), typeof (LoggingBehavior<,>));
-        
-        return services;
+        return new MediationBuilder(services);
     }
 }

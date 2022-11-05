@@ -53,8 +53,6 @@ public class CustomersByRegionQueryHandler : RequestHandler<CustomerByIdQuery, I
 
     protected override async Task<IEnumerable<CustomerDto>> HandleAsync(CustomersByRegionQuery request, CancellationToken cancellationToken)
     {
-        // If InitializationBehavior is registered, every request contains the current user and culture.
-    
         var customers = await _customerRepository.GetManyAsync<Customer>(request.CountryId, request.StateId, cancellationToken);
         
         return customers.Select(c => {
@@ -81,7 +79,7 @@ public class CreateCustomerCommand : Request<CreateCustomerCommandResult>
 }
 ```
 
-### 4. Define Some Command Handlers
+### 4. Define Some Command Results
 ```csharp
 // Commands/CreateCustomer/CreateCustomerCommandResult.cs
 public class CreateCustomerCommandResult
@@ -108,8 +106,6 @@ public class CreateCustomerCommandHandler : RequestHandler<CreateCustomerCommand
 
     protected override async Task<CreateCustomerCommandResult> HandleAsync(CreateCustomerCommand request, CancellationToken cancellationToken)
     {
-        // If InitializationBehavior is registered, every request contains the current user and culture.
-        
         var customer = new Customer();
         
         // Copy properties from request to customer
@@ -124,7 +120,34 @@ public class CreateCustomerCommandHandler : RequestHandler<CreateCustomerCommand
 }
 ```
 
-### 6. Register Queries and Commands
+### 6. Resolve the Current User
+The current user must be resolved from the context of every request being executed.
+
+The following example shows the common use case for a web application.
+
+```csharp
+// HttpRequestUserResolver.cs
+// using ...
+using Flowsy.Mediation;
+// using ...
+
+public class HttpRequestUserResolver : IRequestUserResolver
+{
+    private readonly IHttpContextAccessor _httpContextAccessor;
+    
+    public HttpRequestUserResolver(IHttpContextAccessor httpContextAccessor)
+    {
+        _httpContextAccessor = httpContextAccessor;
+    }
+
+    public Task<ClaimsPrincipal?> GetUserAsync()
+    {
+        return Task.FromResult(_httpContextAccessor.HttpContext?.User);
+    }
+}
+```
+
+### 7. Register Queries and Commands
 Add a reference to the assemblies containing the application logic and place this code in the Program.cs file.
 
 ```csharp
@@ -135,12 +158,22 @@ using Flowsy.Mediation;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddMediation(
-    true, // Register LoggingBehavior to log information for every request and its result
-    typeof(CustomersByRegionQuery).Assembly, // Register queries and commands from this assembly
-    typeof(CreateCustomerCommand).Assembly // Register queries and commands from this assembly
-    // Register queries and commands from others assemblies
-    );
+builder.Services.AddHttpContextAccessor();
+
+builder.Services
+    .AddMediation(
+        typeof(CustomersByRegionQuery).Assembly, // Register queries and commands from this assembly
+        typeof(CreateCustomerCommand).Assembly // Register queries and commands from this assembly
+        // Register queries and commands from others assemblies
+    )
+    // Registers RequestUserResolutionBehavior to set the current user for every request
+    .AddRequestUser(serviceProvider =>
+    {
+        var httpContextAccessor = serviceProvider.GetRequiredService<IHttpContextAccessor>();         
+        return new HttpRequestUserResolver(httpContextAccessor);
+    })
+    // Registers LoggingBehavior to log information for every request and its result
+    .AddLogging();
 
 // Add other services
 
