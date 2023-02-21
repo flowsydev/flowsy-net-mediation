@@ -11,14 +11,14 @@ namespace Flowsy.Mediation;
 /// </summary>
 /// <typeparam name="TRequest">The type of request.</typeparam>
 /// <typeparam name="TResult">The type of the expected result.</typeparam>
-public class LoggingBehavior<TRequest, TResult> : IPipelineBehavior<TRequest, TResult>
+public class RequestLoggingBehavior<TRequest, TResult> : IPipelineBehavior<TRequest, TResult>
     where TRequest : Request<TResult>
 {
     private readonly ILogger _logger;
 
-    public LoggingBehavior()
+    public RequestLoggingBehavior()
     {
-        _logger = Log.ForContext<LoggingBehavior<TRequest, TResult>>();
+        _logger = Log.ForContext<RequestLoggingBehavior<TRequest, TResult>>();
     }
     
     async Task<TResult> IPipelineBehavior<TRequest, TResult>.Handle(TRequest request, RequestHandlerDelegate<TResult> next, CancellationToken cancellationToken)
@@ -90,7 +90,7 @@ public class LoggingBehavior<TRequest, TResult> : IPipelineBehavior<TRequest, TR
 /// Logs request and result information as processed.
 /// </summary>
 /// <typeparam name="TRequest">The type of request.</typeparam>
-public class LoggingBehavior<TRequest> : LoggingBehavior<TRequest, Unit>
+public class RequestLoggingBehavior<TRequest> : RequestLoggingBehavior<TRequest, Unit>
     where TRequest : Request
 {
 }
