@@ -11,7 +11,7 @@
         <RepositoryType>git</RepositoryType>
         <RepositoryUrl>https://github.com/flowsydev/flowsy-net-mediation</RepositoryUrl>
 
-        <PackageVersion>3.0.1</PackageVersion>
+        <PackageVersion>3.1.0</PackageVersion>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
         <PackageReadmeFile>README.md</PackageReadmeFile>
 
@@ -23,6 +23,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <PackageReference Include="Flowsy.Core" Version="1.1.6" />
       <PackageReference Include="Flowsy.DependencyInjection" Version="1.0.1" />
       <PackageReference Include="Flowsy.Localization" Version="2.0.1" />
       <PackageReference Include="MediatR" Version="11.0.0" />
