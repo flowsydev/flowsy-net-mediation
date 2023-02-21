@@ -18,10 +18,13 @@ public static class DependencyInjection
     /// <returns>The application service collection.</returns>
     public static MediationBuilder AddMediation(this IServiceCollection services, params Assembly[] assemblies)
     {
-        if (!services.Any())
+        if (!assemblies.Any())
             throw new ArgumentException("NoAssemblyWasSpecified".Localize(), nameof(assemblies));
         
-        services.AddMediatR(assemblies);
+        services.AddMediatR((configuration) =>
+        {
+            configuration.RegisterServicesFromAssemblies(assemblies);
+        });
         
         return new MediationBuilder(services);
     }
