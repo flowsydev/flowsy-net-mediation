@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using MediatR;
 
 namespace Flowsy.Mediation;
 
@@ -12,5 +13,6 @@ public interface IRequestUserResolver
     /// For example, for a web application, the current user should be the value of HttpContext.User.
     /// </summary>
     /// <returns></returns>
-    Task<ClaimsPrincipal?> GetUserAsync();
+    Task<ClaimsPrincipal?> GetUserAsync<TRequest, TResult>(TRequest request, CancellationToken cancellationToken)
+        where TRequest : Request<TResult>, IRequest<TResult>;
 }

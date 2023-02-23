@@ -21,9 +21,8 @@ public class RequestUserResolutionBehavior<TRequest, TResult> : IPipelineBehavio
     async Task<TResult> IPipelineBehavior<TRequest, TResult>.Handle(TRequest request, RequestHandlerDelegate<TResult> next, CancellationToken cancellationToken)
     {
         if (_userResolver is not null)
-        {
-            request.User = await _userResolver.GetUserAsync();
-        }
+            request.User = await _userResolver.GetUserAsync<TRequest, TResult>(request, cancellationToken);
+        
         return await next();
     }
 }
