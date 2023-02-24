@@ -12,6 +12,12 @@ public class MediationBuilder
         _services = services;
     }
 
+    public MediationBuilder AddRequestUser()
+    {
+        _services.AddTransient(typeof (IPipelineBehavior<,>), typeof (RequestUserResolutionBehavior<,>));
+        return this;
+    }
+
     public MediationBuilder AddRequestUser<T>() where T : class, IRequestUserResolver
     {
         _services.AddTransient<IRequestUserResolver, T>();
