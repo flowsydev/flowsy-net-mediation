@@ -18,6 +18,7 @@ To go even further, we can split those requests in two types:
 ## Dependencies
 This package relies on other packages to set the foundation for infrastructure-decoupled applications:
 * [MediatR](https://www.nuget.org/packages/MediatR)
+* [FluentValidation](https://www.nuget.org/packages/FluentValidation)
 * [Serilog](https://www.nuget.org/packages/Serilog)
 
 ## Usage
@@ -30,12 +31,32 @@ using Flowsy.Mediation;
 
 public class CustomersByRegionQuery : Request<IEnumerable<CustomerDto>>
 {
-    public string CountryId { get; set; }
-    public string StateId { get; set; }
+    public string CountryId { get; set; } = string.Empty;
+    public string? StateId { get; set; }
 }
 ```
 
-### 2. Define Some Query Handlers
+### 2. Define Some Query Validators
+```csharp
+// Queries/CustomersByRegion/CustomersByRegionQueryValidator.cs
+// using ...
+using Flowsy.Mediation;
+using FluentValidation;
+// using ...
+
+public class CustomersByRegionQueryValidator : AbstractValidator<CustomersByRegionQuery>
+{
+    public CustomersByRegionQueryValidator()
+    {
+        RuleFor(query => query.CountryId)
+            .NotEmpty()
+            .WithMessage("Country identifier is required.");
+    }
+}
+```
+
+
+### 3. Define Some Query Handlers
 ```csharp
 // Queries/CustomersByRegion/CustomersByRegionQueryHandler.cs
 // using ...
@@ -64,7 +85,7 @@ public class CustomersByRegionQueryHandler : RequestHandler<CustomerByIdQuery, I
 }
 ```
 
-### 3. Define Some Commands
+### 4. Define Some Commands
 ```csharp
 // Commands/CreateCustomer/CreateCustomerCommand.cs
 // using ...
@@ -73,13 +94,44 @@ using Flowsy.Mediation;
 
 public class CreateCustomerCommand : Request<CreateCustomerCommandResult>
 {
-    public string FirstName { get; set; }
-    public string LastName { get; set; }
-    public string Email { get; set; }
+    public string FirstName { get; set; } = string.Empty;
+    public string LastName { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
 }
 ```
 
-### 4. Define Some Command Results
+### 5. Define Some Command Validators
+```csharp
+// Commands/CreateCustomer/CreateCustomerCommandValidator.cs
+// using ...
+using Flowsy.Mediation;
+using FluentValidation;
+// using ...
+
+public class CreateCustomerCommandValidator : AbstractValidator<CreateCustomerCommand>
+{
+    public CreateCustomerCommandValidator()
+    {
+        RuleFor(command => command.FirstName)
+            .NotEmpty()
+            .WithMessage("First name is required.");
+            
+        RuleFor(command => command.Email)
+            .EmailAddress()
+            .WithMessage("Invalid email address")
+            .DependentRules(() => 
+            {
+                RuleFor(command => command.Email)
+                    .NotEmpty()
+                    .WithMessage("Email is required.")
+                    .MaximumLength(320)
+                    .WithMessage("Up to 320 characters.");
+            });
+    }
+}
+```
+
+### 6. Define Some Command Results
 ```csharp
 // Commands/CreateCustomer/CreateCustomerCommandResult.cs
 public class CreateCustomerCommandResult
@@ -88,7 +140,7 @@ public class CreateCustomerCommandResult
 }
 ```
 
-### 5. Define Some Command Handlers
+### 7. Define Some Command Handlers
 ```csharp
 // Commands/CreateCustomer/CreateCustomerCommandHandler.cs
 // using ...
@@ -120,7 +172,7 @@ public class CreateCustomerCommandHandler : RequestHandler<CreateCustomerCommand
 }
 ```
 
-### 6. Resolve the Current User
+### 8. Resolve the Current User
 The current user must be resolved from the context of every request being executed.
 
 The following example shows the common use case for a web application.
@@ -139,15 +191,16 @@ public class HttpRequestUserResolver : IRequestUserResolver
     {
         _httpContextAccessor = httpContextAccessor;
     }
-
-    public Task<ClaimsPrincipal?> GetUserAsync()
+    
+    public Task<ClaimsPrincipal?> GetUserAsync<TRequest, TResult>(TRequest request, CancellationToken cancellationToken)
+        where TRequest : Request<TResult>, IRequest<TResult>
     {
-        return Task.FromResult(_httpContextAccessor.HttpContext?.User);
+        return Task.Run<ClaimsPrincipal>((Func<ClaimsPrincipal>) (() => _httpContextAccessor.HttpContext?.User), cancellationToken);
     }
 }
 ```
 
-### 7. Register Queries and Commands
+### 9. Register Queries and Commands
 Add a reference to the assemblies containing the application logic and place this code in the Program.cs file.
 
 ```csharp
@@ -160,6 +213,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddHttpContextAccessor();
 
+builder.Services.AddSingleton<IRequestUserResolver, HttpRequestUserResolver>();
+
 builder.Services
     .AddMediation(
         typeof(CustomersByRegionQuery).Assembly, // Register queries and commands from this assembly
@@ -167,12 +222,10 @@ builder.Services
         // Register queries and commands from others assemblies
     )
     // Registers RequestUserResolutionBehavior to set the current user for every request
-    .AddRequestUser(serviceProvider =>
-    {
-        var httpContextAccessor = serviceProvider.GetRequiredService<IHttpContextAccessor>();         
-        return new HttpRequestUserResolver(httpContextAccessor);
-    })
-    // Registers LoggingBehavior to log information for every request and its result
+    .AddRequestUser()
+    // Registers RequestValidationBehavior to validate every request
+    .AddValidation()
+    // Registers RequestLoggingBehavior to log information for every request and its result
     .AddLogging();
 
 // Add other services

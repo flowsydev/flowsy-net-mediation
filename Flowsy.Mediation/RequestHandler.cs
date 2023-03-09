@@ -12,18 +12,8 @@ public abstract class RequestHandler<TRequest, TResult> : IRequestHandler<TReque
 {
     async Task<TResult> IRequestHandler<TRequest, TResult>.Handle(TRequest request, CancellationToken cancellationToken)
     {
-        await ValidateAsync(request, cancellationToken);
         return await HandleAsync(request, cancellationToken);
     }
-
-    /// <summary>
-    /// Validates the data of the request being processed.
-    /// </summary>
-    /// <param name="request">The current request.</param>
-    /// <param name="cancellationToken">The cancellation token for the operation.</param>
-    /// <returns></returns>
-    protected virtual Task ValidateAsync(TRequest request, CancellationToken cancellationToken) =>
-        Task.CompletedTask;
 
     /// <summary>
     /// Processes the user request.
@@ -42,7 +32,6 @@ public abstract class RequestHandler<TRequest> : RequestHandler<TRequest, Unit>,
 {
     async Task<Unit> IRequestHandler<TRequest, Unit>.Handle(TRequest request, CancellationToken cancellationToken)
     {
-        await ValidateAsync(request, cancellationToken);
         await HandleAsync(request, cancellationToken);
         return Unit.Value;
     }

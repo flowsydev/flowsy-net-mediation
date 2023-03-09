@@ -11,13 +11,13 @@
         <RepositoryType>git</RepositoryType>
         <RepositoryUrl>https://github.com/flowsydev/flowsy-net-mediation</RepositoryUrl>
 
-        <PackageVersion>5.1.1</PackageVersion>
+        <PackageVersion>6.0.0</PackageVersion>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
         <PackageReadmeFile>README.md</PackageReadmeFile>
 
         <NoWarn>$(NoWarn);NU5118;NU5128</NoWarn>
     </PropertyGroup>
-
+    
     <ItemGroup>
         <None Include="../README.md" Pack="true" PackagePath="\" />
     </ItemGroup>
@@ -26,6 +26,7 @@
       <PackageReference Include="Flowsy.Core" Version="1.1.7" />
       <PackageReference Include="Flowsy.DependencyInjection" Version="1.0.1" />
       <PackageReference Include="Flowsy.Localization" Version="2.0.1" />
+      <PackageReference Include="FluentValidation" Version="11.5.1" />
       <PackageReference Include="MediatR" Version="12.0.1" />
       <PackageReference Include="Serilog" Version="2.12.0" />
     </ItemGroup>

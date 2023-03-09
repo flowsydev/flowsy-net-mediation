@@ -35,6 +35,12 @@ public class MediationBuilder
         return this;
     }
 
+    public MediationBuilder AddRequestValidation()
+    {
+        _services.AddTransient(typeof (IPipelineBehavior<,>), typeof (RequestValidationBehavior<,>));
+        return this;
+    }
+
     public MediationBuilder AddRequestLogging()
     {
         _services.AddTransient(typeof (IPipelineBehavior<,>), typeof (RequestLoggingBehavior<,>));
