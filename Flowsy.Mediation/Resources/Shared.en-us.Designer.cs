@@ -50,5 +50,11 @@ namespace Flowsy.Mediation.Resources {
                 return ResourceManager.GetString("NoAssemblyWasSpecified", resourceCulture);
             }
         }
+        
+        internal static string InvalidRequest {
+            get {
+                return ResourceManager.GetString("InvalidRequest", resourceCulture);
+            }
+        }
     }
 }

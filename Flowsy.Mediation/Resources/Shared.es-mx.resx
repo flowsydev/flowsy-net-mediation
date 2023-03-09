@@ -21,4 +21,7 @@
     <data name="NoAssemblyWasSpecified" xml:space="preserve">
         <value>No se especificó ningún ensamblado.</value>
     </data>
+    <data name="InvalidRequest" xml:space="preserve">
+        <value>Petición no válida.</value>
+    </data>
 </root>

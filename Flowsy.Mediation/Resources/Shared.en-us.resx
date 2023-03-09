@@ -21,4 +21,7 @@
     <data name="NoAssemblyWasSpecified" xml:space="preserve">
         <value>No assembly was specified.</value>
     </data>
+    <data name="InvalidRequest" xml:space="preserve">
+        <value>Invalid request.</value>
+    </data>
 </root>

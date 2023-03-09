@@ -1,3 +1,6 @@
+using Flowsy.Localization;
+using FluentValidation;
+using FluentValidation.Results;
 using MediatR;
 
 namespace Flowsy.Mediation;
@@ -25,6 +28,21 @@ public abstract class RequestHandler<TRequest, TResult> : IRequestHandler<TReque
     {
         throw new NotSupportedException();
     }
+    
+    protected virtual ValidationException CreateValidationException(
+        string propertyName, 
+        string propertyErrorMessage,
+        object? attemptedValue = null
+        )
+        => CreateValidationException("InvalidRequest".Localize(), propertyName, propertyErrorMessage, attemptedValue);
+    
+    protected virtual ValidationException CreateValidationException(
+        string message,
+        string propertyName, 
+        string propertyErrorMessage,
+        object? attemptedValue = null
+        )
+        => new (message, new []{ new ValidationFailure(propertyName, propertyErrorMessage, attemptedValue) });
 }
 
 public abstract class RequestHandler<TRequest> : RequestHandler<TRequest, Unit>, IRequestHandler<TRequest, Unit>
