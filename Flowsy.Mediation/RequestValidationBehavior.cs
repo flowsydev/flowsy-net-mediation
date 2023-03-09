@@ -1,4 +1,5 @@
 using FluentValidation;
+using FluentValidation.Results;
 using MediatR;
 
 namespace Flowsy.Mediation;
@@ -24,14 +25,18 @@ public class RequestValidationBehavior<TRequest, TResult> : IPipelineBehavior<TR
             return await next();
 
         var validationContext = new ValidationContext<TRequest>(request);
-        var validationFailures = _validators
-            .Select(v => v.Validate(validationContext))
-            .SelectMany(r => r.Errors)
-            .Where(f => f is not null)
-            .ToArray();
+        var validationResults = new List<ValidationResult>();
+        foreach (var validator in _validators)
+            validationResults.Add(await validator.ValidateAsync(validationContext, cancellationToken));
 
-        if (validationFailures.Any())
-            throw new ValidationException(validationFailures);
+        var errors = (
+            from e in validationResults.SelectMany(r => r.Errors)
+            where e is not null
+            select e
+        ).ToArray();
+        
+        if (errors.Any())
+            throw new ValidationException(errors);
 
         return await next();
     }
