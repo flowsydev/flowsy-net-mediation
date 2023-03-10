@@ -37,7 +37,7 @@ public class RequestLoggingBehavior<TRequest, TResult> : IPipelineBehavior<TRequ
                 request
             );
         }
-        else
+        else if (_logger.IsEnabled(LogEventLevel.Information))
         {
             _logger.Information(
                 "User {User} ({Culture}) is executing request {RequestName}",
@@ -54,13 +54,16 @@ public class RequestLoggingBehavior<TRequest, TResult> : IPipelineBehavior<TRequ
             var result = await next();
             stopwatch.Stop();
 
-            _logger.Information(
-                "User {User} ({Culture}) executed request {RequestName} in {ElapsedTime} ms",
-                userId,
-                cultureName,
-                requestName,
-                stopwatch.ElapsedMilliseconds
-            );
+            if (_logger.IsEnabled(LogEventLevel.Information))
+            {
+                _logger.Information(
+                    "User {User} ({Culture}) executed request {RequestName} in {ElapsedTime} ms",
+                    userId,
+                    cultureName,
+                    requestName,
+                    stopwatch.ElapsedMilliseconds
+                );
+            }
 
             if (!_logger.IsEnabled(LogEventLevel.Debug))
                 return result;

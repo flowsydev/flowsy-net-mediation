@@ -25,10 +25,13 @@ public class RequestValidationBehavior<TRequest, TResult> : IPipelineBehavior<TR
             return await next();
 
         var validationContext = new ValidationContext<TRequest>(request);
-        var validationResults = new List<ValidationResult>();
-        foreach (var validator in _validators)
-            validationResults.Add(await validator.ValidateAsync(validationContext, cancellationToken));
-
+        
+        var validationResults = validationContext.IsAsync
+            ? _validators
+                .Select(async v => await v.ValidateAsync(validationContext, cancellationToken))
+                .Select(t => t.Result)
+            : _validators.Select(v => v.Validate(validationContext));
+        
         var errors = (
             from e in validationResults.SelectMany(r => r.Errors)
             where e is not null
