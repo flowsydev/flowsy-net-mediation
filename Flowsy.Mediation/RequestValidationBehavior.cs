@@ -28,14 +28,7 @@ public class RequestValidationBehavior<TRequest, TResult> : IPipelineBehavior<TR
 
         var validationResults = new List<ValidationResult>();
         foreach (var validator in _validators)
-        {
-            var d = validator.CreateDescriptor();
-            validationResults.Add(
-                d.Rules.Any(r => r.HasAsyncCondition) 
-                    ? await validator.ValidateAsync(validationContext, cancellationToken)
-                    : validator.Validate(validationContext)
-                );
-        }
+            validationResults.Add(await validator.ValidateAsync(validationContext, cancellationToken));
         
         var errors = (
             from e in validationResults.SelectMany(r => r.Errors)
