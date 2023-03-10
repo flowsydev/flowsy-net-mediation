@@ -37,7 +37,7 @@ public class RequestLoggingBehavior<TRequest, TResult> : IPipelineBehavior<TRequ
                 request
             );
         }
-        else if (_logger.IsEnabled(LogEventLevel.Information))
+        else
         {
             _logger.Information(
                 "User {User} ({Culture}) is executing request {RequestName}",
@@ -54,28 +54,35 @@ public class RequestLoggingBehavior<TRequest, TResult> : IPipelineBehavior<TRequ
             var result = await next();
             stopwatch.Stop();
 
-            if (_logger.IsEnabled(LogEventLevel.Information))
+            var resultType = result?.GetType();
+
+            if (_logger.IsEnabled(LogEventLevel.Debug))
             {
-                _logger.Information(
-                    "User {User} ({Culture}) executed request {RequestName} in {ElapsedTime} ms",
+                int? resultCount = null;
+                if (result is IEnumerable enumerable)
+                    resultCount = enumerable.AsQueryable().Cast<object>().Count();
+                
+                _logger.Debug(
+                    "User {User} ({Culture}) executed request {RequestName} in {ElapsedTime} ms with result of type {ResultType} [ {@Result} ]",
                     userId,
                     cultureName,
                     requestName,
-                    stopwatch.ElapsedMilliseconds
+                    stopwatch.ElapsedMilliseconds,
+                    resultType?.Name,
+                    resultCount == null ? result : $"{resultCount} item(s)"
                 );
             }
-
-            if (!_logger.IsEnabled(LogEventLevel.Debug))
-                return result;
-            
-            int? resultCount = null;
-            if (result is IEnumerable enumerable)
-                resultCount = enumerable.AsQueryable().Cast<object>().Count();
-                
-            _logger.Debug(
-                "Request result: {@Result}",
-                resultCount == null ? result : $"{resultCount} item(s)"
-            );
+            else
+            {
+                _logger.Information(
+                    "User {User} ({Culture}) executed request {RequestName} in {ElapsedTime} ms with result of type {ResultType}",
+                    userId,
+                    cultureName,
+                    requestName,
+                    stopwatch.ElapsedMilliseconds,
+                    resultType?.Name
+                );
+            }
 
             return result;
         }
