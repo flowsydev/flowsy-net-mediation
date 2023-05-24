@@ -19,7 +19,7 @@ public class DataPageQueryResult<T> where T : class
     public long? TotalPageCount => 
         Query is {CountTotal: true, PageSize: > 0} && TotalItemCount is > 0
             ? (long) Math.Ceiling(TotalItemCount.Value / (decimal) Query.PageSize) 
-            : default;
+            : null;
     
     public bool HasMore 
         => Query.CountTotal && TotalItemCount.HasValue && TotalPageCount.HasValue 
