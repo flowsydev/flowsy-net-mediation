@@ -22,7 +22,5 @@ public class DataPageQueryResult<T> where T : class
             : null;
     
     public bool HasMore 
-        => Query.CountTotal && TotalItemCount.HasValue && TotalPageCount.HasValue 
-            ? Query.PageNumber < TotalPageCount
-            : Query.PageSize == ItemCount;
+        => !Query.CountTotal || !TotalItemCount.HasValue || !TotalPageCount.HasValue || Query.PageNumber < TotalPageCount;
 }
