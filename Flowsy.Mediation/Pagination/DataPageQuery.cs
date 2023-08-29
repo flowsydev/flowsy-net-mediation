@@ -1,6 +1,7 @@
 namespace Flowsy.Mediation.Pagination;
 
-public class DataPageQuery<TResult> : Request<DataPageQueryResult<TResult>>, IDataPageQuery
+public class DataPageQuery<TQueryResult, TResult> : Request<TQueryResult>, IDataPageQuery
+    where TQueryResult : DataPageQueryResult<TResult>
     where TResult : class
 {
     protected DataPageQuery(long pageNumber = 1, long? pageSize = null, bool countTotal = false)
