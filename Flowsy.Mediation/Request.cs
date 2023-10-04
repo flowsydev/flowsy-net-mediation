@@ -26,6 +26,13 @@ public class Request<TResult> : IRequest<TResult>
     [IgnoreDataMember]
     [JsonIgnore]
     public CultureInfo Culture { get; set; } = CultureInfo.CurrentUICulture;
+
+    /// <summary>
+    /// Request data.
+    /// </summary>
+    [IgnoreDataMember]
+    [JsonIgnore]
+    public IDictionary<string, object?> Data { get; } = new Dictionary<string, object?>();
 }
 
 /// <summary>
