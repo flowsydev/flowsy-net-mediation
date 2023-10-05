@@ -28,6 +28,13 @@ public class Request<TResult> : IRequest<TResult>
     public CultureInfo Culture { get; set; } = CultureInfo.CurrentUICulture;
 
     /// <summary>
+    /// Optional Tenant ID.
+    /// </summary>
+    [IgnoreDataMember]
+    [JsonIgnore]
+    public string? TenantId { get; set; }
+
+    /// <summary>
     /// Request data.
     /// </summary>
     [IgnoreDataMember]

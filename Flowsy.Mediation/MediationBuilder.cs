@@ -41,6 +41,29 @@ public class MediationBuilder
         return this;
     }
 
+    public MediationBuilder AddRequestTenant()
+    {
+        _services.AddTransient(typeof (IPipelineBehavior<,>), typeof (RequestTenantResolutionBehavior<,>));
+        return this;
+    }
+
+    public MediationBuilder AddRequestTenant<T>() where T : class, IRequestTenantResolver
+    {
+        _services.AddTransient<IRequestTenantResolver, T>();
+        _services.AddTransient(typeof (IPipelineBehavior<,>), typeof (RequestTenantResolutionBehavior<,>));
+        return this;
+    }
+
+    public MediationBuilder AddRequestTenant(IRequestTenantResolver requestTenantResolver)
+        => AddRequestTenant(_ => requestTenantResolver);
+
+    public MediationBuilder AddRequestTenant(Func<IServiceProvider, IRequestTenantResolver> implementationFactory)
+    {
+        _services.AddTransient(implementationFactory);
+        _services.AddTransient(typeof (IPipelineBehavior<,>), typeof (RequestTenantResolutionBehavior<,>));
+        return this;
+    }
+
     public MediationBuilder AddRequestValidation()
     {
         _services.AddTransient(typeof (IPipelineBehavior<,>), typeof (RequestValidationBehavior<,>));
