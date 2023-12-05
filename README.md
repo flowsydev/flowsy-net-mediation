@@ -19,7 +19,6 @@ To go even further, we can split those requests in two types:
 This package relies on other packages to set the foundation for infrastructure-decoupled applications:
 * [MediatR](https://www.nuget.org/packages/MediatR)
 * [FluentValidation](https://www.nuget.org/packages/FluentValidation)
-* [Serilog](https://www.nuget.org/packages/Serilog)
 
 ## Usage
 ### 1. Define Some Queries
@@ -29,7 +28,7 @@ This package relies on other packages to set the foundation for infrastructure-d
 using Flowsy.Mediation;
 // using ...
 
-public class CustomersByRegionQuery : Request<IEnumerable<CustomerDto>>
+public class CustomersByRegionQuery : AbstractRequest<IEnumerable<CustomerDto>>
 {
     public string CountryId { get; set; } = string.Empty;
     public string? StateId { get; set; }
@@ -63,7 +62,7 @@ public class CustomersByRegionQueryValidator : AbstractValidator<CustomersByRegi
 using Flowsy.Mediation;
 // using ...
 
-public class CustomersByRegionQueryHandler : RequestHandler<CustomerByIdQuery, IEnumerable<CustomerDto>>
+public class CustomersByRegionQueryHandler : AbstractRequestHandler<CustomerByIdQuery, IEnumerable<CustomerDto>>
 {
     private readonly ICustomerRepository _customerRepository;
     
@@ -92,7 +91,7 @@ public class CustomersByRegionQueryHandler : RequestHandler<CustomerByIdQuery, I
 using Flowsy.Mediation;
 // using ...
 
-public class CreateCustomerCommand : Request<CreateCustomerCommandResult>
+public class CreateCustomerCommand : AbstractRequest<CreateCustomerCommandResult>
 {
     public string FirstName { get; set; } = string.Empty;
     public string LastName { get; set; } = string.Empty;
@@ -147,7 +146,7 @@ public class CreateCustomerCommandResult
 using Flowsy.Mediation;
 // using ...
 
-public class CreateCustomerCommandHandler : RequestHandler<CreateCustomerCommand, CreateCustomerCommandResult>
+public class CreateCustomerCommandHandler : AbstractRequestHandler<CreateCustomerCommand, CreateCustomerCommandResult>
 {
     private readonly ICustomerRepository _customerRepository;
     
@@ -172,30 +171,32 @@ public class CreateCustomerCommandHandler : RequestHandler<CreateCustomerCommand
 }
 ```
 
-### 8. Resolve the Current User
-The current user must be resolved from the context of every request being executed.
-
-The following example shows the common use case for a web application.
+### 8. Resolve the Request Environment
+We can enrich every request by resolving an instance of RequestEnvironment for every request.
 
 ```csharp
-// HttpRequestUserResolver.cs
+// HttpRequestEnvironmentResolver.cs
 // using ...
 using Flowsy.Mediation;
 // using ...
 
-public class HttpRequestUserResolver : IRequestUserResolver
+public sealed class HttpRequestEnvironmentResolver : IRequestEnvironmentResolver
 {
     private readonly IHttpContextAccessor _httpContextAccessor;
     
-    public HttpRequestUserResolver(IHttpContextAccessor httpContextAccessor)
+    public HttpRequestEnvironmentResolver(IHttpContextAccessor httpContextAccessor)
     {
         _httpContextAccessor = httpContextAccessor;
     }
     
-    public Task<ClaimsPrincipal?> GetUserAsync<TRequest, TResult>(TRequest request, CancellationToken cancellationToken)
-        where TRequest : Request<TResult>, IRequest<TResult>
+    public Task<RequestEnvironment> ResolveAsync(CancellationToken cancellationToken)
     {
-        return Task.Run<ClaimsPrincipal>((Func<ClaimsPrincipal>) (() => _httpContextAccessor.HttpContext?.User), cancellationToken);
+        // The RequestEnvironment class can be inherited to include additional properties required by our application
+        
+        return Task.Run<RequestEnvironment>(
+            () => new RequestEnvironment(_httpContextAccessor.HttpContext?.User ?? new ClaimsPrincipal()),
+            cancellationToken
+            );
     }
 }
 ```
@@ -213,7 +214,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddHttpContextAccessor();
 
-builder.Services.AddSingleton<IRequestUserResolver, HttpRequestUserResolver>();
+builder.Services.AddSingleton<IRequestEnvironmentResolver, HttpRequestEnvironmentResolver>();
 
 builder.Services
     .AddMediation(
@@ -221,12 +222,13 @@ builder.Services
         typeof(CreateCustomerCommand).Assembly // Register queries and commands from this assembly
         // Register queries and commands from others assemblies
     )
-    // Registers RequestUserResolutionBehavior to set the current user for every request
-    .AddRequestUser()
+    // Registers RequestEnvironmentResolutionBehavior to add environment information to every request using
+    // an instance of IRequestEnvironmentResolver if any was registered in the dependency injection system
+    .UseRequestEnvironment()
     // Registers RequestValidationBehavior to validate every request
-    .AddValidation()
+    .UseRequestValidation()
     // Registers RequestLoggingBehavior to log information for every request and its result
-    .AddLogging();
+    .UseRequestLogging();
 
 // Add other services
 

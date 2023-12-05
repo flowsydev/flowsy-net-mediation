@@ -12,65 +12,33 @@ public class MediationBuilder
         _services = services;
     }
 
-    public MediationBuilder AddBehavior(Type behaviorType)
+    public MediationBuilder UseBehavior(Type behaviorType)
     {
         _services.AddTransient(typeof (IPipelineBehavior<,>), behaviorType);
         return this;
     }
 
-    public MediationBuilder AddRequestUser()
+    public MediationBuilder UseRequestEnvironment<T>() where T : class, IRequestEnvironmentResolver
     {
-        _services.AddTransient(typeof (IPipelineBehavior<,>), typeof (RequestUserResolutionBehavior<,>));
+        _services.AddTransient<IRequestEnvironmentResolver, T>();
+        _services.AddTransient(typeof (IPipelineBehavior<,>), typeof (RequestEnvironmentResolutionBehavior<,>));
         return this;
     }
 
-    public MediationBuilder AddRequestUser<T>() where T : class, IRequestUserResolver
-    {
-        _services.AddTransient<IRequestUserResolver, T>();
-        _services.AddTransient(typeof (IPipelineBehavior<,>), typeof (RequestUserResolutionBehavior<,>));
-        return this;
-    }
-
-    public MediationBuilder AddRequestUser(IRequestUserResolver requestUserResolver)
-        => AddRequestUser(_ => requestUserResolver);
-
-    public MediationBuilder AddRequestUser(Func<IServiceProvider, IRequestUserResolver> implementationFactory)
+    public MediationBuilder UseRequestEnvironment(Func<IServiceProvider, IRequestEnvironmentResolver> implementationFactory)
     {
         _services.AddTransient(implementationFactory);
-        _services.AddTransient(typeof (IPipelineBehavior<,>), typeof (RequestUserResolutionBehavior<,>));
+        _services.AddTransient(typeof (IPipelineBehavior<,>), typeof (RequestEnvironmentResolutionBehavior<,>));
         return this;
     }
 
-    public MediationBuilder AddRequestTenant()
-    {
-        _services.AddTransient(typeof (IPipelineBehavior<,>), typeof (RequestTenantResolutionBehavior<,>));
-        return this;
-    }
-
-    public MediationBuilder AddRequestTenant<T>() where T : class, IRequestTenantResolver
-    {
-        _services.AddTransient<IRequestTenantResolver, T>();
-        _services.AddTransient(typeof (IPipelineBehavior<,>), typeof (RequestTenantResolutionBehavior<,>));
-        return this;
-    }
-
-    public MediationBuilder AddRequestTenant(IRequestTenantResolver requestTenantResolver)
-        => AddRequestTenant(_ => requestTenantResolver);
-
-    public MediationBuilder AddRequestTenant(Func<IServiceProvider, IRequestTenantResolver> implementationFactory)
-    {
-        _services.AddTransient(implementationFactory);
-        _services.AddTransient(typeof (IPipelineBehavior<,>), typeof (RequestTenantResolutionBehavior<,>));
-        return this;
-    }
-
-    public MediationBuilder AddRequestValidation()
+    public MediationBuilder UseRequestValidation()
     {
         _services.AddTransient(typeof (IPipelineBehavior<,>), typeof (RequestValidationBehavior<,>));
         return this;
     }
 
-    public MediationBuilder AddRequestLogging()
+    public MediationBuilder UseRequestLogging()
     {
         _services.AddTransient(typeof (IPipelineBehavior<,>), typeof (RequestLoggingBehavior<,>));
         return this;

@@ -1,15 +1,11 @@
 using System.Linq.Expressions;
 using System.Reflection;
 using FluentValidation;
-using Serilog;
 
 namespace Flowsy.Mediation;
 
 public static class ValidationExtensions
 {
-    private static ILogger? _logger;
-    private static ILogger Logger => _logger ??= Log.ForContext(typeof(ValidationExtensions));
-
     public static string GetPropertyNameForValidation(this MemberInfo memberInfo, LambdaExpression? expression = null)
     {
         try
@@ -18,12 +14,7 @@ public static class ValidationExtensions
         }
         catch (Exception exception)
         {
-            Logger.Error(
-                exception,
-                "Could not resolve property name for validation: {Type}.{PropertyName}",
-                memberInfo.DeclaringType?.Name,
-                memberInfo.Name
-            );
+            Console.WriteLine(exception);
             return memberInfo.Name;
         }
     }

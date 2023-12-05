@@ -10,7 +10,7 @@ namespace Flowsy.Mediation;
 /// <typeparam name="TRequest">The type of request.</typeparam>
 /// <typeparam name="TResult">The type of the expected result.</typeparam>
 public class RequestValidationBehavior<TRequest, TResult> : IPipelineBehavior<TRequest, TResult>
-    where TRequest : Request<TResult>
+    where TRequest : AbstractRequest<TResult>
 {
     private readonly IEnumerable<IValidator<TRequest>> _validators;
 
@@ -48,7 +48,7 @@ public class RequestValidationBehavior<TRequest, TResult> : IPipelineBehavior<TR
 /// </summary>
 /// <typeparam name="TRequest">The type of request.</typeparam>
 public class RequestValidationBehavior<TRequest> : RequestValidationBehavior<TRequest, Unit>
-    where TRequest : Request
+    where TRequest : AbstractRequest
 {
     public RequestValidationBehavior(IEnumerable<IValidator<TRequest>> validators) : base(validators)
     {

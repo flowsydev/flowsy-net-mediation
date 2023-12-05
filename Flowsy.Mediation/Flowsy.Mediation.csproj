@@ -1,9 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net6.0</TargetFramework>
+        <TargetFramework>netstandard2.1</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
+        <LangVersion>11</LangVersion>
 
         <Title>Flowsy Mediation</Title>
         <Description>Basic constructs for implementing the mediator pattern.</Description>
@@ -11,7 +12,7 @@
         <RepositoryType>git</RepositoryType>
         <RepositoryUrl>https://github.com/flowsydev/flowsy-net-mediation</RepositoryUrl>
 
-        <PackageVersion>7.3.2</PackageVersion>
+        <PackageVersion>8.0.0</PackageVersion>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
         <PackageReadmeFile>README.md</PackageReadmeFile>
 
@@ -23,35 +24,44 @@
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="Flowsy.Core" Version="2.0.0" />
-      <PackageReference Include="Flowsy.DependencyInjection" Version="1.0.1" />
-      <PackageReference Include="Flowsy.Localization" Version="2.0.1" />
-      <PackageReference Include="FluentValidation" Version="11.7.1" />
-      <PackageReference Include="MediatR" Version="12.1.1" />
-      <PackageReference Include="Serilog" Version="3.0.1" />
+      <PackageReference Include="Flowsy.Core" Version="4.0.0" />
+      <PackageReference Include="FluentValidation" Version="11.8.1" />
+      <PackageReference Include="MediatR" Version="12.2.0" />
+      <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.0" />
+      <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+      <PackageReference Include="System.Text.Json" Version="8.0.0" />
     </ItemGroup>
 
     <ItemGroup>
-      <EmbeddedResource Update="Resources\Shared.en-us.resx">
+      <EmbeddedResource Update="Resources\Strings.en-us.resx">
         <Generator>ResXFileCodeGenerator</Generator>
         <LastGenOutput>Shared.en-us.Designer.cs</LastGenOutput>
       </EmbeddedResource>
-      <EmbeddedResource Update="Resources\Shared.es-mx.resx">
+      <EmbeddedResource Update="Resources\Strings.es-mx.resx">
         <Generator>ResXFileCodeGenerator</Generator>
         <LastGenOutput>Shared.es-mx.Designer.cs</LastGenOutput>
+      </EmbeddedResource>
+      <EmbeddedResource Update="Resources\Strings.resx">
+        <Generator>ResXFileCodeGenerator</Generator>
+        <LastGenOutput>Strings.Designer.cs</LastGenOutput>
       </EmbeddedResource>
     </ItemGroup>
 
     <ItemGroup>
-      <Compile Update="Resources\Shared.en-us.Designer.cs">
+      <Compile Update="Resources\Strings.en-us.Designer.cs">
         <DesignTime>True</DesignTime>
         <AutoGen>True</AutoGen>
-        <DependentUpon>Shared.en-us.resx</DependentUpon>
+        <DependentUpon>Strings.en-us.resx</DependentUpon>
       </Compile>
-      <Compile Update="Resources\Shared.es-mx.Designer.cs">
+      <Compile Update="Resources\Strings.es-mx.Designer.cs">
         <DesignTime>True</DesignTime>
         <AutoGen>True</AutoGen>
-        <DependentUpon>Shared.es-mx.resx</DependentUpon>
+        <DependentUpon>Strings.es-mx.resx</DependentUpon>
+      </Compile>
+      <Compile Update="Resources\Strings.Designer.cs">
+        <DesignTime>True</DesignTime>
+        <AutoGen>True</AutoGen>
+        <DependentUpon>Strings.resx</DependentUpon>
       </Compile>
     </ItemGroup>
 

@@ -1,8 +1,8 @@
 using System.Collections;
 using System.Diagnostics;
+using System.Globalization;
 using MediatR;
-using Serilog;
-using Serilog.Events;
+using Microsoft.Extensions.Logging;
 
 namespace Flowsy.Mediation;
 
@@ -12,26 +12,27 @@ namespace Flowsy.Mediation;
 /// <typeparam name="TRequest">The type of request.</typeparam>
 /// <typeparam name="TResult">The type of the expected result.</typeparam>
 public class RequestLoggingBehavior<TRequest, TResult> : IPipelineBehavior<TRequest, TResult>
-    where TRequest : Request<TResult>
+    where TRequest : AbstractRequest<TResult>
 {
-    private readonly ILogger _logger;
+    private readonly ILogger<RequestLoggingBehavior<TRequest, TResult>> _logger;
 
-    public RequestLoggingBehavior()
+    public RequestLoggingBehavior(ILogger<RequestLoggingBehavior<TRequest, TResult>> logger)
     {
-        _logger = Log.ForContext<RequestLoggingBehavior<TRequest, TResult>>();
+        _logger = logger;
     }
-    
+
     async Task<TResult> IPipelineBehavior<TRequest, TResult>.Handle(TRequest request, RequestHandlerDelegate<TResult> next, CancellationToken cancellationToken)
     {
-        var userId = request.User?.Identity?.Name ?? "unknown";
+        var user = request.Environment.User;
+        var userName = user.Identity?.Name ?? "unknown";
         var requestName = request.GetType().Name;
-        var cultureName = request.Culture.Name;
+        var cultureName = CultureInfo.CurrentUICulture.Name;
 
-        if (_logger.IsEnabled(LogEventLevel.Debug))
+        if (_logger.IsEnabled(LogLevel.Debug))
         {
-            _logger.Debug(
+            _logger.LogDebug(
                 "User {User} ({Culture}) is executing request {RequestName}\n{@RequestContent}",
-                userId,
+                userName,
                 cultureName,
                 requestName,
                 request
@@ -39,9 +40,9 @@ public class RequestLoggingBehavior<TRequest, TResult> : IPipelineBehavior<TRequ
         }
         else
         {
-            _logger.Information(
+            _logger.LogInformation(
                 "User {User} ({Culture}) is executing request {RequestName}",
-                userId,
+                userName,
                 cultureName,
                 requestName
             );
@@ -56,15 +57,15 @@ public class RequestLoggingBehavior<TRequest, TResult> : IPipelineBehavior<TRequ
 
             var resultType = result?.GetType();
 
-            if (_logger.IsEnabled(LogEventLevel.Debug))
+            if (_logger.IsEnabled(LogLevel.Debug))
             {
                 int? resultCount = null;
                 if (result is IEnumerable enumerable)
                     resultCount = enumerable.AsQueryable().Cast<object>().Count();
                 
-                _logger.Debug(
+                _logger.LogDebug(
                     "User {User} ({Culture}) executed request {RequestName} in {ElapsedTime} ms with result of type {ResultType} [ {@Result} ]",
-                    userId,
+                    userName,
                     cultureName,
                     requestName,
                     stopwatch.ElapsedMilliseconds,
@@ -74,9 +75,9 @@ public class RequestLoggingBehavior<TRequest, TResult> : IPipelineBehavior<TRequ
             }
             else
             {
-                _logger.Information(
+                _logger.LogInformation(
                     "User {User} ({Culture}) executed request {RequestName} in {ElapsedTime} ms with result of type {ResultType}",
-                    userId,
+                    userName,
                     cultureName,
                     requestName,
                     stopwatch.ElapsedMilliseconds,
@@ -101,6 +102,9 @@ public class RequestLoggingBehavior<TRequest, TResult> : IPipelineBehavior<TRequ
 /// </summary>
 /// <typeparam name="TRequest">The type of request.</typeparam>
 public class RequestLoggingBehavior<TRequest> : RequestLoggingBehavior<TRequest, Unit>
-    where TRequest : Request
+    where TRequest : AbstractRequest
 {
+    public RequestLoggingBehavior(ILogger<RequestLoggingBehavior<TRequest>> logger) : base(logger)
+    {
+    }
 }

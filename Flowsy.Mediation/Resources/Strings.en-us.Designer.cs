@@ -14,21 +14,21 @@ namespace Flowsy.Mediation.Resources {
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
     [System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    internal class Shared_es_mx {
+    internal class Strings_en_us {
         
         private static System.Resources.ResourceManager resourceMan;
         
         private static System.Globalization.CultureInfo resourceCulture;
         
         [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
-        internal Shared_es_mx() {
+        internal Strings_en_us() {
         }
         
         [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
         internal static System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.Equals(null, resourceMan)) {
-                    System.Resources.ResourceManager temp = new System.Resources.ResourceManager("Flowsy.Mediation.Resources.Shared_es_mx", typeof(Shared_es_mx).Assembly);
+                    System.Resources.ResourceManager temp = new System.Resources.ResourceManager("Flowsy.Mediation.Resources.Strings_en_us", typeof(Strings_en_us).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
