@@ -12,7 +12,7 @@
         <RepositoryType>git</RepositoryType>
         <RepositoryUrl>https://github.com/flowsydev/flowsy-net-mediation</RepositoryUrl>
 
-        <PackageVersion>8.0.0</PackageVersion>
+        <PackageVersion>8.0.1</PackageVersion>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
         <PackageReadmeFile>README.md</PackageReadmeFile>
 
@@ -33,11 +33,11 @@
     </ItemGroup>
 
     <ItemGroup>
-      <EmbeddedResource Update="Resources\Strings.en-us.resx">
+      <EmbeddedResource Update="Resources\Strings.en.resx">
         <Generator>ResXFileCodeGenerator</Generator>
         <LastGenOutput>Shared.en-us.Designer.cs</LastGenOutput>
       </EmbeddedResource>
-      <EmbeddedResource Update="Resources\Strings.es-mx.resx">
+      <EmbeddedResource Update="Resources\Strings.es.resx">
         <Generator>ResXFileCodeGenerator</Generator>
         <LastGenOutput>Shared.es-mx.Designer.cs</LastGenOutput>
       </EmbeddedResource>
@@ -48,15 +48,15 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Compile Update="Resources\Strings.en-us.Designer.cs">
+      <Compile Update="Resources\Strings.en.Designer.cs">
         <DesignTime>True</DesignTime>
         <AutoGen>True</AutoGen>
-        <DependentUpon>Strings.en-us.resx</DependentUpon>
+        <DependentUpon>Strings.en.resx</DependentUpon>
       </Compile>
-      <Compile Update="Resources\Strings.es-mx.Designer.cs">
+      <Compile Update="Resources\Strings.es.Designer.cs">
         <DesignTime>True</DesignTime>
         <AutoGen>True</AutoGen>
-        <DependentUpon>Strings.es-mx.resx</DependentUpon>
+        <DependentUpon>Strings.es.resx</DependentUpon>
       </Compile>
       <Compile Update="Resources\Strings.Designer.cs">
         <DesignTime>True</DesignTime>
