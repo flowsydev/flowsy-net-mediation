@@ -6,9 +6,7 @@ public abstract class AbstractRequestHandler<TRequest, TResult> : IRequestHandle
     where TRequest : AbstractRequest<TResult>
 {
     Task<TResult> IRequestHandler<TRequest, TResult>.Handle(TRequest request, CancellationToken cancellationToken)
-    {
-        return HandleAsync(request, cancellationToken);
-    }
+        => HandleAsync(request, cancellationToken);
 
     protected virtual Task<TResult> HandleAsync(TRequest request, CancellationToken cancellationToken)
     {
@@ -16,20 +14,13 @@ public abstract class AbstractRequestHandler<TRequest, TResult> : IRequestHandle
     }
 }
 
-public abstract class AbstractRequestHandler<TRequest>
-    : AbstractRequestHandler<TRequest, Unit>, IRequestHandler<TRequest, Unit>, IRequestHandler<TRequest>
-    where TRequest : AbstractRequest<Unit>, IRequest
+public abstract class AbstractRequestHandler<TRequest> : IRequestHandler<TRequest> 
+    where TRequest : AbstractRequest
 {
     Task IRequestHandler<TRequest>.Handle(TRequest request, CancellationToken cancellationToken)
         => HandleAsync(request, cancellationToken);
-    
-    async Task<Unit> IRequestHandler<TRequest, Unit>.Handle(TRequest request, CancellationToken cancellationToken)
-    {
-        await HandleAsync(request, cancellationToken);
-        return Unit.Value;
-    }
-    
-    protected new virtual Task HandleAsync(TRequest request, CancellationToken cancellationToken)
+
+    protected virtual Task HandleAsync(TRequest request, CancellationToken cancellationToken)
     {
         throw new NotImplementedException();
     }
