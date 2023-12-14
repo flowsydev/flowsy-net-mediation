@@ -2,7 +2,7 @@ using MediatR;
 
 namespace Flowsy.Mediation;
 
-public class RequestEnvironmentResolutionBehavior<TRequest, TResult> : IPipelineBehavior<TRequest, TResult>
+public sealed class RequestEnvironmentResolutionBehavior<TRequest, TResult> : IPipelineBehavior<TRequest, TResult>
     where TRequest : AbstractRequest<TResult>
 {
     private readonly IRequestEnvironmentResolver? _requestEnvironmentResolver;
@@ -12,7 +12,7 @@ public class RequestEnvironmentResolutionBehavior<TRequest, TResult> : IPipeline
         _requestEnvironmentResolver = requestEnvironmentResolver;
     }
 
-    public virtual async Task<TResult> Handle(TRequest request, RequestHandlerDelegate<TResult> next, CancellationToken cancellationToken)
+    public async Task<TResult> Handle(TRequest request, RequestHandlerDelegate<TResult> next, CancellationToken cancellationToken)
     {
         if (_requestEnvironmentResolver is not null)
             request.Environment = await _requestEnvironmentResolver.ResolveAsync(cancellationToken);
@@ -21,10 +21,21 @@ public class RequestEnvironmentResolutionBehavior<TRequest, TResult> : IPipeline
     }
 }
 
-public class RequestEnvironmentResolutionBehavior<TRequest> : RequestEnvironmentResolutionBehavior<TRequest, Unit>
+public sealed class RequestEnvironmentResolutionBehavior<TRequest> : IPipelineBehavior<TRequest, Unit>
     where TRequest : AbstractRequest
 {
-    public RequestEnvironmentResolutionBehavior(IRequestEnvironmentResolver requestEnvironmentResolver) : base(requestEnvironmentResolver)
+    private readonly IRequestEnvironmentResolver? _requestEnvironmentResolver;
+    
+    public RequestEnvironmentResolutionBehavior(IRequestEnvironmentResolver? requestEnvironmentResolver)
     {
+        _requestEnvironmentResolver = requestEnvironmentResolver;
+    }
+
+    public async Task<Unit> Handle(TRequest request, RequestHandlerDelegate<Unit> next, CancellationToken cancellationToken)
+    {
+        if (_requestEnvironmentResolver is not null)
+            request.Environment = await _requestEnvironmentResolver.ResolveAsync(cancellationToken);
+        
+        return await next();
     }
 }
