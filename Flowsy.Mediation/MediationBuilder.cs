@@ -18,17 +18,18 @@ public class MediationBuilder
         return this;
     }
 
-    public MediationBuilder UseRequestEnvironment<T>() where T : class, IRequestEnvironmentResolver
+    public MediationBuilder UseRequestContext<TContext, TRequestContextProvider>()
+        where TRequestContextProvider : class, IRequestContextProvider<TContext>
     {
-        _services.AddTransient<IRequestEnvironmentResolver, T>();
-        _services.AddTransient(typeof (IPipelineBehavior<,>), typeof (RequestEnvironmentResolutionBehavior<,>));
+        _services.AddScoped<IRequestContextProvider<TContext>, TRequestContextProvider>();
+        _services.AddTransient(typeof (IPipelineBehavior<,>), typeof (RequestContextResolutionBehavior<,>));
         return this;
     }
 
-    public MediationBuilder UseRequestEnvironment(Func<IServiceProvider, IRequestEnvironmentResolver> implementationFactory)
+    public MediationBuilder UseRequestContext<TContext>(Func<IServiceProvider, IRequestContextProvider<TContext>> implementationFactory)
     {
-        _services.AddTransient(implementationFactory);
-        _services.AddTransient(typeof (IPipelineBehavior<,>), typeof (RequestEnvironmentResolutionBehavior<,>));
+        _services.AddScoped(implementationFactory);
+        _services.AddTransient(typeof (IPipelineBehavior<,>), typeof (RequestContextResolutionBehavior<,>));
         return this;
     }
 

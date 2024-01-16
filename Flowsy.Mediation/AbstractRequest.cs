@@ -1,20 +1,13 @@
-using System.Security.Claims;
 using MediatR;
 
 namespace Flowsy.Mediation;
 
-public abstract record AbstractRequest<TResult> : IRequest<TResult>
+public abstract class AbstractRequest<TContext, TResult> : IRequest<TResult>
 {
-    [System.Text.Json.Serialization.JsonIgnore]
-    [Newtonsoft.Json.JsonIgnore]
-    public RequestEnvironment Environment { get; internal set; } =
-        new(ClaimsPrincipal.Current ?? new ClaimsPrincipal());
+    public TContext Context { get; internal set; } = default!;
 }
 
-public abstract record AbstractRequest : IRequest
+public abstract class AbstractRequest<TContext> : IRequest
 {
-    [System.Text.Json.Serialization.JsonIgnore]
-    [Newtonsoft.Json.JsonIgnore]
-    public RequestEnvironment Environment { get; internal set; } =
-        new(ClaimsPrincipal.Current ?? new ClaimsPrincipal());
+    public TContext Context { get; internal set; } = default!;
 }

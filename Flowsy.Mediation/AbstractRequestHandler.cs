@@ -2,8 +2,8 @@ using MediatR;
 
 namespace Flowsy.Mediation;
 
-public abstract class AbstractRequestHandler<TRequest, TResult> : IRequestHandler<TRequest, TResult>
-    where TRequest : AbstractRequest<TResult>
+public abstract class AbstractRequestHandler<TContext, TRequest, TResult> : IRequestHandler<TRequest, TResult>
+    where TRequest : AbstractRequest<TContext, TResult>
 {
     Task<TResult> IRequestHandler<TRequest, TResult>.Handle(TRequest request, CancellationToken cancellationToken)
         => HandleAsync(request, cancellationToken);
@@ -14,8 +14,8 @@ public abstract class AbstractRequestHandler<TRequest, TResult> : IRequestHandle
     }
 }
 
-public abstract class AbstractRequestHandler<TRequest> : IRequestHandler<TRequest> 
-    where TRequest : AbstractRequest
+public abstract class AbstractRequestHandler<TContext, TRequest> : IRequestHandler<TRequest> 
+    where TRequest : AbstractRequest<TContext>
 {
     Task IRequestHandler<TRequest>.Handle(TRequest request, CancellationToken cancellationToken)
         => HandleAsync(request, cancellationToken);

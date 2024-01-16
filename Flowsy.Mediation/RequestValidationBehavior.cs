@@ -7,10 +7,11 @@ namespace Flowsy.Mediation;
 /// <summary>
 /// Validates user requests before being processed.
 /// </summary>
+/// <typeparam name="TContext">The type of request context.</typeparam>
 /// <typeparam name="TRequest">The type of request.</typeparam>
 /// <typeparam name="TResult">The type of the expected result.</typeparam>
-public sealed class RequestValidationBehavior<TRequest, TResult> : IPipelineBehavior<TRequest, TResult>
-    where TRequest : AbstractRequest<TResult>
+public sealed class RequestValidationBehavior<TContext, TRequest, TResult> : IPipelineBehavior<TRequest, TResult>
+    where TRequest : AbstractRequest<TContext, TResult>
 {
     private readonly IEnumerable<IValidator<TRequest>> _validators;
 
@@ -46,9 +47,10 @@ public sealed class RequestValidationBehavior<TRequest, TResult> : IPipelineBeha
 /// <summary>
 /// Validates user requests before being processed.
 /// </summary>
+/// <typeparam name="TContext">The type of request context.</typeparam>
 /// <typeparam name="TRequest">The type of request.</typeparam>
-public sealed class RequestValidationBehavior<TRequest> : IPipelineBehavior<TRequest, Unit>
-    where TRequest : AbstractRequest
+public sealed class RequestValidationBehavior<TContext, TRequest> : IPipelineBehavior<TRequest, Unit>
+    where TRequest : AbstractRequest<TContext>
 {
     private readonly IEnumerable<IValidator<TRequest>> _validators;
     

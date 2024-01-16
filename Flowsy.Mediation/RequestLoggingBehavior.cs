@@ -9,42 +9,40 @@ namespace Flowsy.Mediation;
 /// <summary>
 /// Logs request and result information as processed.
 /// </summary>
+/// <typeparam name="TContext">The type of request context.</typeparam>
 /// <typeparam name="TRequest">The type of request.</typeparam>
 /// <typeparam name="TResult">The type of the expected result.</typeparam>
-public sealed class RequestLoggingBehavior<TRequest, TResult> : IPipelineBehavior<TRequest, TResult>
-    where TRequest : AbstractRequest<TResult>
+public sealed class RequestLoggingBehavior<TContext, TRequest, TResult> : IPipelineBehavior<TRequest, TResult>
+    where TRequest : AbstractRequest<TContext, TResult>
 {
-    private readonly ILogger<RequestLoggingBehavior<TRequest, TResult>> _logger;
+    private readonly ILogger<RequestLoggingBehavior<TContext, TRequest, TResult>> _logger;
 
-    public RequestLoggingBehavior(ILogger<RequestLoggingBehavior<TRequest, TResult>> logger)
+    public RequestLoggingBehavior(ILogger<RequestLoggingBehavior<TContext, TRequest, TResult>> logger)
     {
         _logger = logger;
     }
 
     async Task<TResult> IPipelineBehavior<TRequest, TResult>.Handle(TRequest request, RequestHandlerDelegate<TResult> next, CancellationToken cancellationToken)
     {
-        var user = request.Environment.User;
-        var userName = user.Identity?.Name ?? "unknown";
         var requestName = request.GetType().Name;
         var cultureName = CultureInfo.CurrentUICulture.Name;
 
         if (_logger.IsEnabled(LogLevel.Debug))
         {
             _logger.LogDebug(
-                "User {User} ({Culture}) is executing request {RequestName}\n{@RequestContent}",
-                userName,
-                cultureName,
+                "Executing request {RequestName} ({CultureName})\n{@Request}",
                 requestName,
+                cultureName,
                 request
             );
         }
         else
         {
             _logger.LogInformation(
-                "User {User} ({Culture}) is executing request {RequestName}",
-                userName,
+                "Executing request {RequestName} ({Culture})\n{@Context}",
+                requestName,
                 cultureName,
-                requestName
+                request.Context
             );
         }
         
@@ -64,22 +62,20 @@ public sealed class RequestLoggingBehavior<TRequest, TResult> : IPipelineBehavio
                     resultCount = enumerable.AsQueryable().Cast<object>().Count();
                 
                 _logger.LogDebug(
-                    "User {User} ({Culture}) executed request {RequestName} in {ElapsedTime} ms with result of type {ResultType} [ {@Result} ]",
-                    userName,
+                    "Request {RequestName} ({Culture}) executed in {ElapsedTime:N} ms with result of type {ResultType} [ {@Result} ]", 
+                    requestName, 
                     cultureName,
-                    requestName,
                     stopwatch.ElapsedMilliseconds,
                     resultType?.Name,
-                    resultCount == null ? result : $"{resultCount} item(s)"
+                    resultCount.HasValue ? $"{resultCount.Value} item(s)" : result
                 );
             }
             else
             {
                 _logger.LogInformation(
-                    "User {User} ({Culture}) executed request {RequestName} in {ElapsedTime} ms with result of type {ResultType}",
-                    userName,
-                    cultureName,
+                    "Request {RequestName} ({Culture}) executed in {ElapsedTime:N} ms with result of type {ResultType}",
                     requestName,
+                    cultureName,
                     stopwatch.ElapsedMilliseconds,
                     resultType?.Name
                 );
@@ -100,42 +96,40 @@ public sealed class RequestLoggingBehavior<TRequest, TResult> : IPipelineBehavio
 /// <summary>
 /// Logs request and result information as processed.
 /// </summary>
+/// <typeparam name="TContext">The type of request context.</typeparam>
 /// <typeparam name="TRequest">The type of request.</typeparam>
-public sealed class RequestLoggingBehavior<TRequest> : IPipelineBehavior<TRequest, Unit>
-    where TRequest : AbstractRequest
+public sealed class RequestLoggingBehavior<TContext, TRequest> : IPipelineBehavior<TRequest, Unit>
+    where TRequest : AbstractRequest<TContext>
 {
-    private readonly ILogger<RequestLoggingBehavior<TRequest>> _logger;
+    private readonly ILogger<RequestLoggingBehavior<TContext, TRequest>> _logger;
     
-    public RequestLoggingBehavior(ILogger<RequestLoggingBehavior<TRequest>> logger)
+    public RequestLoggingBehavior(ILogger<RequestLoggingBehavior<TContext, TRequest>> logger)
     {
         _logger = logger;
     }
 
     public async Task<Unit> Handle(TRequest request, RequestHandlerDelegate<Unit> next, CancellationToken cancellationToken)
     {
-        var user = request.Environment.User;
-        var userName = user.Identity?.Name ?? "unknown";
         var requestName = request.GetType().Name;
         var cultureName = CultureInfo.CurrentUICulture.Name;
-        
+
         if (_logger.IsEnabled(LogLevel.Debug))
         {
             _logger.LogDebug(
-                "User {User} ({Culture}) is executing request {RequestName}\n{@RequestContent}",
-                userName,
-                cultureName,
+                "Executing request {RequestName} ({CultureName})\n{@Request}",
                 requestName,
+                cultureName,
                 request
-                );
+            );
         }
         else
         {
             _logger.LogInformation(
-                "User {User} ({Culture}) is executing request {RequestName}",
-                userName,
+                "Executing request {RequestName} ({Culture})\n{@Context}",
+                requestName,
                 cultureName,
-                requestName
-                );
+                request.Context
+            );
         }
         
         var stopwatch = new Stopwatch();
@@ -148,20 +142,18 @@ public sealed class RequestLoggingBehavior<TRequest> : IPipelineBehavior<TReques
             if (_logger.IsEnabled(LogLevel.Debug))
             {
                 _logger.LogDebug(
-                    "User {User} ({Culture}) executed request {RequestName} in {ElapsedTime} ms with no result",
-                    userName,
+                    "Request {RequestName} ({Culture}) executed in {ElapsedTime:N} ms with no result", 
+                    requestName, 
                     cultureName,
-                    requestName,
                     stopwatch.ElapsedMilliseconds
                 );
             }
             else
             {
                 _logger.LogInformation(
-                    "User {User} ({Culture}) executed request {RequestName} in {ElapsedTime} ms with no result",
-                    userName,
-                    cultureName,
+                    "Request {RequestName} ({Culture}) executed in {ElapsedTime:N} ms with no result",
                     requestName,
+                    cultureName,
                     stopwatch.ElapsedMilliseconds
                 );
             }
