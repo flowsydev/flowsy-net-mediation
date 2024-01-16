@@ -218,7 +218,7 @@ public sealed class HttpRequestContextProvider : IRequestContextProvider<Operati
         _httpContextAccessor = httpContextAccessor;
     }
     
-    public OperationContext Provide()
+    public OperationContext ProvideContext()
     {
         var serviceAccountId = "";
         var userId = "";
@@ -228,8 +228,8 @@ public sealed class HttpRequestContextProvider : IRequestContextProvider<Operati
         return new OperationContext(serviceAccountId, userId);
     }
     
-    public Task<OperationContext> ProvideAsync(CancellationToken cancellationToken)
-        => Task.Run(() => Provide(), cancellationToken);
+    public Task<OperationContext> ProvideContextAsync(CancellationToken cancellationToken)
+        => Task.Run(() => ProvideContext(), cancellationToken);
 }
 ```
 
