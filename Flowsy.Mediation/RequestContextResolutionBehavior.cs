@@ -15,7 +15,7 @@ public sealed class RequestContextResolutionBehavior<TContext, TRequest, TResult
     public async Task<TResult> Handle(TRequest request, RequestHandlerDelegate<TResult> next, CancellationToken cancellationToken)
     {
         if (_requestContextProvider is not null)
-            request.Context = await _requestContextProvider.ProvideAsync(cancellationToken);
+            request.Context = await _requestContextProvider.ProvideContextAsync(cancellationToken);
         
         return await next();
     }
@@ -34,7 +34,7 @@ public sealed class RequestContextResolutionBehavior<TContext, TRequest> : IPipe
     public async Task<Unit> Handle(TRequest request, RequestHandlerDelegate<Unit> next, CancellationToken cancellationToken)
     {
         if (_requestContextProvider is not null)
-            request.Context = await _requestContextProvider.ProvideAsync(cancellationToken);
+            request.Context = await _requestContextProvider.ProvideContextAsync(cancellationToken);
         
         return await next();
     }
