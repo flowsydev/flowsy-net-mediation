@@ -21,14 +21,14 @@ public class MediationBuilder
     public MediationBuilder UseRequestContext<TContext, TRequestContextProvider>()
         where TRequestContextProvider : class, IRequestContextProvider<TContext>
     {
-        _services.AddScoped<IRequestContextProvider<TContext>, TRequestContextProvider>();
+        _services.AddTransient<IRequestContextProvider<TContext>, TRequestContextProvider>();
         _services.AddTransient(typeof (IPipelineBehavior<,>), typeof (RequestContextResolutionBehavior<,>));
         return this;
     }
 
     public MediationBuilder UseRequestContext<TContext>(Func<IServiceProvider, IRequestContextProvider<TContext>> implementationFactory)
     {
-        _services.AddScoped(implementationFactory);
+        _services.AddTransient(implementationFactory);
         _services.AddTransient(typeof (IPipelineBehavior<,>), typeof (RequestContextResolutionBehavior<,>));
         return this;
     }
