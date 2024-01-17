@@ -18,34 +18,30 @@ public class MediationBuilder
         return this;
     }
 
-    public MediationBuilder UseRequestContext<TContext, TRequestContextProvider>()
-        where TRequestContextProvider : class, IRequestContextProvider<TContext>
+    public MediationBuilder UseRequestContext<TRequestContextProvider>()
+        where TRequestContextProvider : class, IRequestContextProvider
     {
-        _services.AddTransient<IRequestContextProvider<TContext>, TRequestContextProvider>();
+        _services.AddTransient<IRequestContextProvider, TRequestContextProvider>();
         _services.AddTransient(typeof (IPipelineBehavior<,>), typeof (RequestContextResolutionBehavior<,>));
-        _services.AddTransient(typeof (IPipelineBehavior<,>), typeof (RequestContextResolutionBehavior<,,>));
         return this;
     }
 
-    public MediationBuilder UseRequestContext<TContext>(Func<IServiceProvider, IRequestContextProvider<TContext>> implementationFactory)
+    public MediationBuilder UseRequestContext(Func<IServiceProvider, IRequestContextProvider> implementationFactory)
     {
         _services.AddTransient(implementationFactory);
         _services.AddTransient(typeof (IPipelineBehavior<,>), typeof (RequestContextResolutionBehavior<,>));
-        _services.AddTransient(typeof (IPipelineBehavior<,>), typeof (RequestContextResolutionBehavior<,,>));
         return this;
     }
 
     public MediationBuilder UseRequestValidation()
     {
         _services.AddTransient(typeof (IPipelineBehavior<,>), typeof (RequestValidationBehavior<,>));
-        _services.AddTransient(typeof (IPipelineBehavior<,>), typeof (RequestValidationBehavior<,,>));
         return this;
     }
 
     public MediationBuilder UseRequestLogging()
     {
         _services.AddTransient(typeof (IPipelineBehavior<,>), typeof (RequestLoggingBehavior<,>));
-        _services.AddTransient(typeof (IPipelineBehavior<,>), typeof (RequestLoggingBehavior<,,>));
         return this;
     }
 }

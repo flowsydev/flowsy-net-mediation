@@ -1,7 +1,7 @@
 namespace Flowsy.Mediation;
 
-public interface IRequestContextProvider<TContext>
+public interface IRequestContextProvider
 {
-    TContext ProvideContext();
-    Task<TContext> ProvideContextAsync(CancellationToken cancellationToken);
+    object ProvideContext();
+    Task<object> ProvideContextAsync(CancellationToken cancellationToken);
 }

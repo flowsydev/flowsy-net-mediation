@@ -9,15 +9,14 @@ namespace Flowsy.Mediation;
 /// <summary>
 /// Logs request and result information as processed.
 /// </summary>
-/// <typeparam name="TContext">The type of request context.</typeparam>
 /// <typeparam name="TRequest">The type of request.</typeparam>
 /// <typeparam name="TResult">The type of the expected result.</typeparam>
-public sealed class RequestLoggingBehavior<TContext, TRequest, TResult> : IPipelineBehavior<TRequest, TResult>
-    where TRequest : AbstractRequest<TContext, TResult>
+public sealed class RequestLoggingBehavior<TRequest, TResult> : IPipelineBehavior<TRequest, TResult>
+    where TRequest : notnull
 {
-    private readonly ILogger<RequestLoggingBehavior<TContext, TRequest, TResult>> _logger;
+    private readonly ILogger<RequestLoggingBehavior<TRequest, TResult>> _logger;
 
-    public RequestLoggingBehavior(ILogger<RequestLoggingBehavior<TContext, TRequest, TResult>> logger)
+    public RequestLoggingBehavior(ILogger<RequestLoggingBehavior<TRequest, TResult>> logger)
     {
         _logger = logger;
     }
@@ -27,24 +26,12 @@ public sealed class RequestLoggingBehavior<TContext, TRequest, TResult> : IPipel
         var requestName = request.GetType().Name;
         var cultureName = CultureInfo.CurrentUICulture.Name;
 
-        if (_logger.IsEnabled(LogLevel.Debug))
-        {
-            _logger.LogDebug(
-                "Executing request {RequestName} ({CultureName})\n{@Request}",
-                requestName,
-                cultureName,
-                request
+        _logger.LogInformation(
+            "Executing request {RequestName} ({Culture})\n{@Request}",
+            requestName,
+            cultureName,
+            request
             );
-        }
-        else
-        {
-            _logger.LogInformation(
-                "Executing request {RequestName} ({Culture})\n{@Context}",
-                requestName,
-                cultureName,
-                request.Context
-            );
-        }
         
         var stopwatch = new Stopwatch();
         try
@@ -78,83 +65,6 @@ public sealed class RequestLoggingBehavior<TContext, TRequest, TResult> : IPipel
                     cultureName,
                     stopwatch.ElapsedMilliseconds,
                     resultType?.Name
-                );
-            }
-
-            return result;
-        }
-        catch (Exception)
-        {
-            if (stopwatch.IsRunning)
-                stopwatch.Stop();
-
-            throw;
-        }
-    }
-}
-
-/// <summary>
-/// Logs request and result information as processed.
-/// </summary>
-/// <typeparam name="TContext">The type of request context.</typeparam>
-/// <typeparam name="TRequest">The type of request.</typeparam>
-public sealed class RequestLoggingBehavior<TContext, TRequest> : IPipelineBehavior<TRequest, Unit>
-    where TRequest : AbstractRequest<TContext>
-{
-    private readonly ILogger<RequestLoggingBehavior<TContext, TRequest>> _logger;
-    
-    public RequestLoggingBehavior(ILogger<RequestLoggingBehavior<TContext, TRequest>> logger)
-    {
-        _logger = logger;
-    }
-
-    public async Task<Unit> Handle(TRequest request, RequestHandlerDelegate<Unit> next, CancellationToken cancellationToken)
-    {
-        var requestName = request.GetType().Name;
-        var cultureName = CultureInfo.CurrentUICulture.Name;
-
-        if (_logger.IsEnabled(LogLevel.Debug))
-        {
-            _logger.LogDebug(
-                "Executing request {RequestName} ({CultureName})\n{@Request}",
-                requestName,
-                cultureName,
-                request
-            );
-        }
-        else
-        {
-            _logger.LogInformation(
-                "Executing request {RequestName} ({Culture})\n{@Context}",
-                requestName,
-                cultureName,
-                request.Context
-            );
-        }
-        
-        var stopwatch = new Stopwatch();
-        try
-        {
-            stopwatch.Start();
-            var result = await next();
-            stopwatch.Stop();
-
-            if (_logger.IsEnabled(LogLevel.Debug))
-            {
-                _logger.LogDebug(
-                    "Request {RequestName} ({Culture}) executed in {ElapsedTime:N} ms with no result", 
-                    requestName, 
-                    cultureName,
-                    stopwatch.ElapsedMilliseconds
-                );
-            }
-            else
-            {
-                _logger.LogInformation(
-                    "Request {RequestName} ({Culture}) executed in {ElapsedTime:N} ms with no result",
-                    requestName,
-                    cultureName,
-                    stopwatch.ElapsedMilliseconds
                 );
             }
 

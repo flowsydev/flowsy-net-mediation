@@ -209,7 +209,7 @@ In order to provide our requests with their corresponding context, we must imple
 using Flowsy.Mediation;
 // using ...
 
-public sealed class HttpRequestContextProvider : IRequestContextProvider<OperationContext>
+public sealed class HttpRequestContextProvider : IRequestContextProvider
 {
     private readonly IHttpContextAccessor _httpContextAccessor;
     
@@ -218,7 +218,7 @@ public sealed class HttpRequestContextProvider : IRequestContextProvider<Operati
         _httpContextAccessor = httpContextAccessor;
     }
     
-    public OperationContext ProvideContext()
+    public object ProvideContext()
     {
         var serviceAccountId = "";
         var userId = "";
@@ -228,8 +228,8 @@ public sealed class HttpRequestContextProvider : IRequestContextProvider<Operati
         return new OperationContext(serviceAccountId, userId);
     }
     
-    public Task<OperationContext> ProvideContextAsync(CancellationToken cancellationToken)
-        => Task.Run(() => ProvideContext(), cancellationToken);
+    public Task<object> ProvideContextAsync(CancellationToken cancellationToken)
+        => Task.Run(ProvideContext, cancellationToken);
 }
 ```
 
@@ -246,17 +246,15 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddHttpContextAccessor();
 
-builder.Services.AddScoped<IRequestContextProvider<OperationContext>, HttpRequestContextProvider>();
-
 builder.Services
     .AddMediation(
         typeof(CustomersByRegionQuery).Assembly, // Register queries and commands from this assembly
         typeof(CreateCustomerCommand).Assembly // Register queries and commands from this assembly
         // Register queries and commands from others assemblies
     )
-    // Registers RequestContextResolutionBehavior to add context information to every request using
-    // an instance of IRequestContextProvider<TContext> if any was registered in the dependency injection system
-    .UseRequestContext()
+    // Registers RequestContextResolutionBehavior to add context information to
+    // every request using the specified implementation of IRequestContextProvider
+    .UseRequestContext<HttpRequestContextProvider>()
     // Registers RequestValidationBehavior to validate every request
     .UseRequestValidation()
     // Registers RequestLoggingBehavior to log information for every request and its result

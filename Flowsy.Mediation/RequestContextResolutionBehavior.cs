@@ -2,39 +2,29 @@ using MediatR;
 
 namespace Flowsy.Mediation;
 
-public sealed class RequestContextResolutionBehavior<TContext, TRequest, TResult> : IPipelineBehavior<TRequest, TResult>
-    where TRequest : AbstractRequest<TContext, TResult>
+public sealed class RequestContextResolutionBehavior<TRequest, TResult> : IPipelineBehavior<TRequest, TResult>
+    where TRequest : notnull
 {
-    private readonly IRequestContextProvider<TContext>? _requestContextProvider;
+    private readonly IRequestContextProvider? _requestContextProvider;
 
-    public RequestContextResolutionBehavior(IRequestContextProvider<TContext>? requestContextProvider = null)
+    public RequestContextResolutionBehavior(IRequestContextProvider? requestContextProvider = null)
     {
         _requestContextProvider = requestContextProvider;
     }
 
     public async Task<TResult> Handle(TRequest request, RequestHandlerDelegate<TResult> next, CancellationToken cancellationToken)
     {
-        if (_requestContextProvider is not null)
-            request.Context = await _requestContextProvider.ProvideContextAsync(cancellationToken);
+        if (_requestContextProvider is null)
+            return await next();
         
-        return await next();
-    }
-}
-
-public sealed class RequestContextResolutionBehavior<TContext, TRequest> : IPipelineBehavior<TRequest, Unit>
-    where TRequest : AbstractRequest<TContext>
-{
-    private readonly IRequestContextProvider<TContext>? _requestContextProvider;
-    
-    public RequestContextResolutionBehavior(IRequestContextProvider<TContext>? requestContextProvider = null)
-    {
-        _requestContextProvider = requestContextProvider;
-    }
-
-    public async Task<Unit> Handle(TRequest request, RequestHandlerDelegate<Unit> next, CancellationToken cancellationToken)
-    {
-        if (_requestContextProvider is not null)
-            request.Context = await _requestContextProvider.ProvideContextAsync(cancellationToken);
+        var requestType = typeof(TRequest);
+        var property = requestType.GetProperty("Context");
+        if (property is null)
+            return await next();
+        
+        var context = await _requestContextProvider.ProvideContextAsync(cancellationToken);
+        if (property.PropertyType == context.GetType())
+            property.SetValue(request, context);
         
         return await next();
     }
