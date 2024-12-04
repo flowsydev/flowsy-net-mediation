@@ -10,26 +10,42 @@ namespace Flowsy.Mediation;
 /// Logs request and result information as processed.
 /// </summary>
 /// <typeparam name="TRequest">The type of request.</typeparam>
-/// <typeparam name="TResult">The type of the expected result.</typeparam>
-public sealed class RequestLoggingBehavior<TRequest, TResult> : IPipelineBehavior<TRequest, TResult>
+/// <typeparam name="TResponse">The type of the expected response.</typeparam>
+public sealed class RequestLoggingBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
     where TRequest : notnull
 {
-    private readonly ILogger<RequestLoggingBehavior<TRequest, TResult>> _logger;
+    private readonly ILogger<RequestLoggingBehavior<TRequest, TResponse>> _logger;
 
-    public RequestLoggingBehavior(ILogger<RequestLoggingBehavior<TRequest, TResult>> logger)
+    public RequestLoggingBehavior(ILogger<RequestLoggingBehavior<TRequest, TResponse>> logger)
     {
         _logger = logger;
     }
 
-    async Task<TResult> IPipelineBehavior<TRequest, TResult>.Handle(TRequest request, RequestHandlerDelegate<TResult> next, CancellationToken cancellationToken)
+    /// <summary>
+    /// Pipeline handler. Perform any additional behavior and await the next delegate as necessary
+    /// </summary>
+    /// <param name="request">
+    /// The request to handle.
+    /// </param>
+    /// <param name="next">
+    /// Awaitable delegat for the next action in the pipeline. 
+    /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token for the operation.
+    /// </param>
+    /// <returns>
+    /// A task that represents the asynchronous operation. The task result contains the response obtained by handling the request.
+    /// </returns>
+    async Task<TResponse> IPipelineBehavior<TRequest, TResponse>.Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
     {
         var requestName = request.GetType().Name;
         var cultureName = CultureInfo.CurrentUICulture.Name;
 
         _logger.LogInformation(
-            "Executing request {RequestName} ({Culture})\n{@Request}",
+            "Executing request {RequestName} ({Culture}){NewLine}{@Request}",
             requestName,
             cultureName,
+            Environment.NewLine,
             request
             );
         
@@ -49,11 +65,12 @@ public sealed class RequestLoggingBehavior<TRequest, TResult> : IPipelineBehavio
                     resultCount = enumerable.AsQueryable().Cast<object>().Count();
                 
                 _logger.LogDebug(
-                    "Request {RequestName} ({Culture}) executed in {ElapsedTime:N} ms with result of type {ResultType} [ {@Result} ]", 
+                    "Request {RequestName} ({Culture}) executed in {ElapsedTime:N} ms with result of type {ResultType}{NewLine}{@Result}", 
                     requestName, 
                     cultureName,
                     stopwatch.ElapsedMilliseconds,
                     resultType?.Name,
+                    Environment.NewLine,
                     resultCount.HasValue ? $"{resultCount.Value} item(s)" : result
                 );
             }

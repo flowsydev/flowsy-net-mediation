@@ -8,8 +8,8 @@ namespace Flowsy.Mediation;
 /// Validates user requests before being processed.
 /// </summary>
 /// <typeparam name="TRequest">The type of request.</typeparam>
-/// <typeparam name="TResult">The type of the expected result.</typeparam>
-public sealed class RequestValidationBehavior<TRequest, TResult> : IPipelineBehavior<TRequest, TResult>
+/// <typeparam name="TResponse">The type of the expected response.</typeparam>
+public sealed class RequestValidationBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
     where TRequest : notnull
 {
     private readonly IEnumerable<IValidator<TRequest>> _validators;
@@ -19,7 +19,22 @@ public sealed class RequestValidationBehavior<TRequest, TResult> : IPipelineBeha
         _validators = validators;
     }
 
-    public async Task<TResult> Handle(TRequest request, RequestHandlerDelegate<TResult> next, CancellationToken cancellationToken)
+    /// <summary>
+    /// Pipeline handler. Perform any additional behavior and await the next delegate as necessary
+    /// </summary>
+    /// <param name="request">
+    /// The request to handle.
+    /// </param>
+    /// <param name="next">
+    /// Awaitable delegat for the next action in the pipeline. 
+    /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token for the operation.
+    /// </param>
+    /// <returns>
+    /// A task that represents the asynchronous operation. The task result contains the response obtained by handling the request.
+    /// </returns>
+    public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
     {
         if (!_validators.Any())
             return await next();

@@ -21,9 +21,12 @@ This package relies on other packages to set the foundation for infrastructure-d
 * [FluentValidation](https://www.nuget.org/packages/FluentValidation)
 
 ## Usage
-### 1. Define an Operation Context
+Although you can directly use the `IRequest`, `IRequest<TResponse>`, `IRequestHandler<TRequest>` and `IRequestHandler<TRequest, TResponse>`
+interfaces from **MediatR** to define your requests and request handlers, this package provides some base classes to help you define **contextual requests** and **contextual request handlers**. 
+
+### 1. Define a Request Context
 We can provide our requests with relevant information about the context in which they are being executed.
-For instance, we can create a class to store information associated with the current user or application executing our requests:
+For instance, we can create a class to store information associated with the current user or service account executing our requests:
 ```csharp
 public sealed class OperationContext
 {
@@ -49,7 +52,7 @@ public sealed class OperationContext
 using Flowsy.Mediation;
 // using ...
 
-public class CustomersByRegionQuery : AbstractRequest<OperationContext, IEnumerable<CustomerDto>>
+public class CustomersByRegionQuery : ContextualRequest<OperationContext, IEnumerable<CustomerDto>>
 {
     public string CountryId { get; set; } = string.Empty;
     public string? StateId { get; set; }
@@ -68,6 +71,10 @@ public class CustomersByRegionQueryValidator : AbstractValidator<CustomersByRegi
 {
     public CustomersByRegionQueryValidator()
     {
+        RuleFor(query => query.Context)
+            .NotNull()
+            .WithMessage("Query context is required.");
+        
         RuleFor(query => query.CountryId)
             .NotEmpty()
             .WithMessage("Country identifier is required.");
@@ -83,7 +90,7 @@ public class CustomersByRegionQueryValidator : AbstractValidator<CustomersByRegi
 using Flowsy.Mediation;
 // using ...
 
-public class CustomersByRegionQueryHandler : AbstractRequestHandler<OperationContext, CustomerByIdQuery, IEnumerable<CustomerDto>>
+public class CustomersByRegionQueryHandler : ContextualRequestHandler<OperationContext, CustomerByIdQuery, IEnumerable<CustomerDto>>
 {
     private readonly ICustomerRepository _customerRepository;
     
@@ -94,9 +101,11 @@ public class CustomersByRegionQueryHandler : AbstractRequestHandler<OperationCon
 
     protected override async Task<IEnumerable<CustomerDto>> HandleAsync(CustomersByRegionQuery request, CancellationToken cancellationToken)
     {
-        var serviceAccountId = request.Context.ServiceAccountId;
-        var userId = request.Context.UserId;
-        // Do something with serviceAccountId and userId
+        var context = request.Context;
+        var serviceAccountId = context.ServiceAccountId;
+        var userId = context.UserId;
+        
+        // Do something with serviceAccountId and userId, maybe check user or service account permissions
         
         var customers = await _customerRepository.GetManyAsync<Customer>(request.CountryId, request.StateId, cancellationToken);
         
@@ -116,7 +125,7 @@ public class CustomersByRegionQueryHandler : AbstractRequestHandler<OperationCon
 using Flowsy.Mediation;
 // using ...
 
-public class CreateCustomerCommand : AbstractRequest<OperationContext, CreateCustomerCommandResult>
+public class CreateCustomerCommand : ContextualRequest<OperationContext, CreateCustomerCommandResult>
 {
     public string FirstName { get; set; } = string.Empty;
     public string LastName { get; set; } = string.Empty;
@@ -136,6 +145,10 @@ public class CreateCustomerCommandValidator : AbstractValidator<CreateCustomerCo
 {
     public CreateCustomerCommandValidator()
     {
+        RuleFor(command => command.Context.UserId)
+            .NotEmpty()
+            .WithMessage("Request User ID is required.");
+        
         RuleFor(command => command.FirstName)
             .NotEmpty()
             .WithMessage("First name is required.");
@@ -171,7 +184,7 @@ public class CreateCustomerCommandResult
 using Flowsy.Mediation;
 // using ...
 
-public class CreateCustomerCommandHandler : AbstractRequestHandler<OperationContext, CreateCustomerCommand, CreateCustomerCommandResult>
+public class CreateCustomerCommandHandler : ContextualRequestHandler<OperationContext, CreateCustomerCommand, CreateCustomerCommandResult>
 {
     private readonly ICustomerRepository _customerRepository;
     
@@ -182,9 +195,11 @@ public class CreateCustomerCommandHandler : AbstractRequestHandler<OperationCont
 
     protected override async Task<CreateCustomerCommandResult> HandleAsync(CreateCustomerCommand request, CancellationToken cancellationToken)
     {
-        var serviceAccountId = request.Context.ServiceAccountId;
-        var userId = request.Context.UserId;
-        // Do something with serviceAccountId and userId
+        var context = request.Context;
+        var serviceAccountId = context.ServiceAccountId;
+        var userId = context.UserId;
+        
+        // Do something with serviceAccountId and userId, maybe check user or service account permissions
         
         var customer = new Customer();
         
@@ -200,7 +215,7 @@ public class CreateCustomerCommandHandler : AbstractRequestHandler<OperationCont
 }
 ```
 
-### 9. Resolve the Request Context
+### 9. Provide the Request Context
 In order to provide our requests with their corresponding context, we must implement the **IRequestContextProvider** interface.
 
 ```csharp
@@ -218,18 +233,19 @@ public sealed class HttpRequestContextProvider : IRequestContextProvider
         _httpContextAccessor = httpContextAccessor;
     }
     
-    public object ProvideContext()
+    public object ProvideContext<TRequest>(TRequest request) where TRequest : IContextualRequest
     {
         var serviceAccountId = "";
         var userId = "";
         var user = _httpContextAccessor.HttpContext?.User;
+        
         // Read information from user to resolve the service account ID and user ID
         
         return new OperationContext(serviceAccountId, userId);
     }
     
-    public Task<object> ProvideContextAsync(CancellationToken cancellationToken)
-        => Task.Run(ProvideContext, cancellationToken);
+    public Task<object> ProvideContextAsync<TRequest>(TRequest request, CancellationToken cancellationToken) where TRequest : IContextualRequest
+        => Task.Run(() => ProvideContext(request), cancellationToken);
 }
 ```
 
@@ -240,18 +256,21 @@ Add a reference to the assemblies containing the application logic and place thi
 // Program.cs
 // using ...
 using Flowsy.Mediation;
+using FluentValidation;
 // using ...
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddHttpContextAccessor();
 
+builder.Services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
+
 builder.Services
-    .AddMediation(
-        typeof(CustomersByRegionQuery).Assembly, // Register queries and commands from this assembly
-        typeof(CreateCustomerCommand).Assembly // Register queries and commands from this assembly
-        // Register queries and commands from others assemblies
-    )
+    .AddMediation(config => 
+    {
+        // Register requests from the required assemblies
+        config.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly());
+    })
     // Registers RequestContextResolutionBehavior to add context information to
     // every request using the specified implementation of IRequestContextProvider
     .UseRequestContext<HttpRequestContextProvider>()
